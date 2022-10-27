@@ -1,0 +1,1 @@
+# Manage clients, make a client class, hold connections and such

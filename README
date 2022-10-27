@@ -1,0 +1,15 @@
+This is the COMP-3825 project of Dylan Hensley and Brandon Wong.
+
+Project design:
+https://docs.google.com/document/d/1Ds6xo6UcVgjGTfK05b3IjMgnsyJBdjSJoZeX20sFngM/edit?usp=sharing
+
+Casing:
+PascalCase is to be used for classes, methods, variables, etc.
+SCREAMING_SNAKE_CASE is to be used for constants.
+camelCase is to be used for normal functions.
+i_forgot_the_name_case for modules and files
+
+Tabs > Spaces
+
+Structure:
+See design-info for information on the project structure.

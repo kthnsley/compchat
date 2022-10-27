@@ -1,0 +1,12 @@
+{
+    "python.analysis.extraPaths": [
+        "./src"
+    ],
+    "files.exclude": {
+        "**/__pycache__": true,
+        "build": true,
+        "**/*.egg-info": true,
+        "dist": true,
+    },
+    "editor.insertSpaces": false
+}

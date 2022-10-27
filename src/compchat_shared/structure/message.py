@@ -1,0 +1,1 @@
+# Class to be extended for the formatting of information

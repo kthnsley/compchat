@@ -1,0 +1,1 @@
+# Just for fun, dumb JSON implementation of persistent message storage.
