@@ -7,7 +7,7 @@ Casing:
 PascalCase is to be used for classes, methods, variables, etc.
 SCREAMING_SNAKE_CASE is to be used for constants.
 camelCase is to be used for normal functions.
-i_forgot_the_name_case for modules and files
+i_forgot_the_name_case for modules and files.
 
 Tabs > Spaces
 
