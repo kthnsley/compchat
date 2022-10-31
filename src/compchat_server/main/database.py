@@ -1,1 +1,66 @@
 # Just for fun, dumb JSON implementation of persistent message storage.
+import json
+import os
+
+from compchat_shared.utility import projlogging
+
+class Database():
+	def __init__(Self, DatabasePath: str = "/tmp/compchat-db.json"):
+		Self.DatabaseLogger = projlogging.Logger("server_database")
+
+		DatabasePathRootSplit = DatabasePath.split("/")
+		DatabasePathRoot = "/".join(DatabasePathRootSplit[:len(DatabasePathRootSplit) - 1])
+
+		if not os.path.exists(DatabasePathRoot):
+			Self.DatabaseLogger.Log("Path to DatabasePath doesn't exist! Erroring.", 1)
+			Self.DatabaseLogger.Log(f"Target path: {DatabasePathRoot}")
+			raise FileNotFoundError
+
+		# read database so we can modify it
+		Self.DatabasePath = DatabasePath
+
+		if os.path.exists(DatabasePath):
+			try:
+				DatabaseFile = open(DatabasePath, "r")
+				Self.Data = json.load(DatabaseFile)
+				DatabaseFile.close()
+			except:
+				Self.DatabaseLogger.Log("Failed to load JSON, but file exists. Erroring.", 1)
+				raise
+			
+		else:
+			Self.DatabaseLogger.Log("No database information found. Writing new DB.", 3)
+			Self.Data = {
+				"Clients": {},
+				"Channels": {},
+			}
+
+			Self.__Write()
+
+	def __Write(Self):
+		Self.DatabaseLogger.Log("Writing to database.")
+		Self.DatabaseLogger.Log(str(Self.Data), 5)
+		DatabaseFile = open(Self.DatabasePath, "w")
+		json.dump(Self.Data, DatabaseFile)
+		DatabaseFile.close()
+	
+	# channel info
+	def GetChannelInfo(Self):
+		pass
+
+	def WriteChannelInfo(Self):
+		pass
+
+	# channel messages
+	def GetChannelMessages(Self):
+		pass
+
+	def AppendChannelMessages(Self):
+		pass
+	
+	# client info
+	def GetClientInfo(Self):
+		pass
+
+	def AddClientInfo(Self):
+		pass

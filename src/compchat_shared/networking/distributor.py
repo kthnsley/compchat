@@ -1,6 +1,7 @@
 # This module is responsible for creating a socket that our processes can listen to to get a socket to use.
 # This can be used for either local connections or remote connections.
-# Port 33825 is the default socket_distributor port.
+# Port 33825 is the default socket_distributor port. socket_communicator uses 33826.
+# Server uses 33825 for the shutdown scripts
 
 # Possible todo: 
 # Make an anti-abuse that prevents denial of service by spamming the socket

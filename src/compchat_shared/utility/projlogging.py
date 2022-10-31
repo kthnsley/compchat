@@ -35,7 +35,6 @@ class Logger():
 			InternalLogger.Log(f"Made logger for {Source} to {LogPath}")
 		else:
 			Self.Log(f"Made logger for {Source} to {LogPath}")
-		
 
 	# Main function
 	def Log(Self, Message: string, Verbosity=5):

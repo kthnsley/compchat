@@ -13,3 +13,6 @@ Tabs > Spaces
 
 Structure:
 See design-info for information on the project structure.
+
+Useful stuff:
+https://docs.python.org/3/py-modindex.html - list of builtin modules
