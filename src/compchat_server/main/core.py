@@ -31,7 +31,8 @@ class Core:
 
 		# PHASE 4 LOADING
 		# Communicators
-		CommunicatorModules = {}
+		Self.CommunicatorClasses = {}
+		Self.CommunicatorConnectors = {}
 		for ModulePath in (glob.glob(f"{compchat_server.communicators.__path__[0]}/*.py")):
 			ModuleName = ModulePath.split("/")[-1][:-3]
 
@@ -45,10 +46,12 @@ class Core:
 				# exec module
 				CommunicatorModuleSpec.loader.exec_module(CommunicatorModule)
 				
-				CommunicatorModules[ModuleName] = CommunicatorModule.Communicator
-				# Call the init
-				CommunicatorModule.init(Self)
+				Self.CommunicatorClasses[ModuleName] = CommunicatorModule.CommunicatorClass()
 
+				Self.CommunicatorConnectors[ModuleName] = CommunicatorModule.CommunicatorConnection
+
+				# Call the start func
+				Self.CommunicatorClasses[ModuleName].Start(Self)
 
 if __name__ == "__main__":
 	Core()

@@ -5,7 +5,7 @@ from compchat_server.main import core as CompChatCore
 from compchat_shared.utility import projlogging
 from compchat_shared.networking import distributor
 
-class Communicator():
+class CommunicatorConnection():
 	Logger = projlogging.Logger("socket_communicator_connection")
 
 	def __init__(Self, Core: CompChatCore):
@@ -27,11 +27,13 @@ def handlePortRequest(Socket: socket.SocketType):
 	pass
 
 class CommunicatorClass:
-	def __init__(Self, Core: CompChatCore):
-		MainLogger = projlogging.Logger("socket_communicator_main")
+	MainLogger = projlogging.Logger("socket_communicator_main")
+
+	def Start(Self, Core: CompChatCore):
+		Self.Core = Core
 
 		# Create our SocketDistributor
-		MainLogger.Log("Creating distributor.")
+		Self.MainLogger.Log("Creating distributor.")
 		Self.SocketDistributor = distributor.DistributorServer(Callback=handlePortRequest)
 		Self.SocketDistributor.Start(Port=33826)
 
