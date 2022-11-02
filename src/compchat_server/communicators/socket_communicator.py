@@ -10,7 +10,8 @@ class CommunicatorConnection():
 	Logger = projlogging.Logger("socket_communicator_connection")
 
 	def __init__(Self, Core: CompChatCore):
-		pass
+		Self.Core = Core
+		print("Socket communicator got a new socket")
 
 	def Check(Self):
 		pass
@@ -18,7 +19,10 @@ class CommunicatorConnection():
 	def Destroy(Self):
 		pass
 
-	def Replicate(self):
+	def Replicate(Self):
+		pass
+
+	def __ReceiveData(Self):
 		pass
 
 class CommunicatorClass:
@@ -36,14 +40,5 @@ class CommunicatorClass:
 		Self.SocketDistributor.Stop()
 
 	def HandleNewConnection(Self, Socket: socket.SocketType):
+		pass
 		# at this point, we are on a random port with the connection
-		print("Socket communicator got a new socket")
-		
-		Chunks = []
-		while True:
-			Data = Socket.recv(2048)
-			if Data:
-				Chunks.append(Data)
-				print(Data)
-		
-		print("passed")
