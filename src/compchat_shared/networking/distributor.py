@@ -9,6 +9,7 @@
 import socket
 import compchat_shared.utility.projlogging as projlogging
 import threading
+import time
 
 Logger = projlogging.Logger("socket_distributor")
 
@@ -19,6 +20,9 @@ def defaultCallback(Socket: socket.SocketType):
 
 # Takes a callback function and server address. Adds a .start and .stop can be called to start and stop the server.
 class DistributorServer:
+	# We have to do this to prevent GC from closing our sockets.
+	ActiveSockets = []
+
 	def __init__(Self, Host="0.0.0.0", Callback=defaultCallback):
 		Self.__Host = Host # where we listen to
 		Self.__Status = "STOPPED" # Valid statuses are "AVAILABLE", "STOPPED"
@@ -35,6 +39,7 @@ class DistributorServer:
 
 		Self.__Status = "AVAILABLE"
 		Self.__Socket = socket.create_server((Self.__Host, Port), backlog=9)
+		Self.__Port = Port
 		Self.__HandlerThread = threading.Thread(target=Self.__HandleIncomingConnections)
 		Self.__HandlerThread.start()
 
@@ -48,28 +53,41 @@ class DistributorServer:
 		Self.__Status = "STOPPED"
 
 		# Connect to ourself to stop thread
-		TerminateThread = socket.create_connection(("127.0.0.1", 33825))
+		TerminateThread = socket.create_connection(("127.0.0.1", Self.__Port))
+		time.sleep(1)
 		TerminateThread.close()
 
 		#Self.__Socket.close()
 
 	def __CreateListener(Self, Socket: socket.SocketType):
-			AvailablePortSock = socket.socket()
-			AvailablePortSock.bind((Self.__Host, 0))
-			AvailablePort = AvailablePortSock.getsockname()[1]
-			Socket.sendall(str(AvailablePort).encode())
-			Logger.Log(f"Sent port {AvailablePort} to client.")
-			AvailablePortSock.close()
-			
-			# Make our new socket
-			NewSocket = socket.create_server((Self.__Host, AvailablePort), backlog=9)
-			threading.Thread(target=Self.__Callback, args=(NewSocket))
+		# Do this to work around weird behavior
+		AvailablePortSock = socket.socket()
+		AvailablePortSock.bind((Self.__Host, 0))
+		AvailablePort = AvailablePortSock.getsockname()[1]
+		AvailablePortSock.close()
 
-			Socket.close()
+		# Make our real server
+		NewSocket = socket.create_server((Self.__Host, AvailablePort), backlog=9)
+		
+		Socket.sendall(str(AvailablePort).encode())
+	
+		Logger.Log(f"Sent port {AvailablePort} to client.")
+
+		# Wait for client connection
+		# POSSIBLE TODO: This is prone to DDoS by just spamming and never actually connecting, probably.
+		NewSocket.listen(9)
+		NewSocket, _ = NewSocket.accept()
+		# POSSIBLE TODO: Make sure addresses line up, doesn't matter as much as above though
+
+		threading.Thread(target=Self.__Callback, args=[NewSocket]).start()
+
+		Self.ActiveSockets.append(NewSocket)
+
+		Socket.close()
 
 	def __HandleIncomingConnections(Self):
 		Logger.Log(f"Socket preparing to handle connections")
-		Self.__Socket.listen(9)
+		Self.__Socket.listen()
 		while Self.__Status == "AVAILABLE":
 			Socket, Address = Self.__Socket.accept()
 			Logger.Log(f"Got connection from {Address} for listener running at {Self.__Socket.getsockname()}")
@@ -81,16 +99,19 @@ class DistributorServer:
 			CreateListenerThread.start()
 
 # Helper that provides one function to make code cleaner
-def getSocket(Host="127.0.0.1", Port=33825):
+def getSocket(Host="127.0.0.1", Port=33825) -> socket.SocketType:
 	GetSocket = socket.create_connection((Host, Port))
 	while True:
 		Data = GetSocket.recv(16)
 		if Data:
 			try:
 				Data = int(Data)
-				return Data
+				break
 			except:
 				pass
-		else:
-			break
-	GetSocket.close()
+
+	# We have our port
+	Logger.Log(f"Attempting connection from getSocket call to {Host, Data}")
+	NewSocket = socket.create_connection((Host, Data), timeout=10)
+	# Return new socket
+	return NewSocket

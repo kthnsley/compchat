@@ -37,11 +37,10 @@ time.sleep(1)
 print("making client connections")
 
 # get client connections
-for _ in range(5):
+for _ in range(20):
 	print("making client connection")
 	time.sleep(0.1)
 	print(f"GOT PORT: {distributor.getSocket()}")
 
 print("stopping")
-time.sleep(1)
 SocketDistributorTest.Stop()

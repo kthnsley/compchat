@@ -55,6 +55,3 @@ class Logger():
 
 # Make our internal logger for logger log messages
 InternalLogger = Logger("projlogging")
-
-# DEBUG CODE, remove before done:
-Logger.PrintVerbosity = 5

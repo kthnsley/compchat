@@ -1,6 +1,8 @@
 # Using dependency injection to pass functions that are needed from core to submodules
 import importlib.util
 import glob
+import threading
+import time
 
 # Import our own submodules
 from compchat_server.main import database, client_manager, connection_manager, message_processor, server_channel
@@ -11,7 +13,11 @@ class Core:
 	def __init__(Self):
 		# PHASE 0 LOADING
 		Self.CoreLogger = projlogging.Logger("server_core")
+		Self.Running = False
+
+	def Start(Self):
 		Self.CoreLogger.Log("Starting compchat server.", 4)
+		Self.Running = True
 
 		# PHASE 1 LOADING
 		# Load DB
@@ -41,7 +47,6 @@ class Core:
 
 				# importlib magic
 				CommunicatorModuleSpec = importlib.util.spec_from_file_location(ModuleName, ModulePath)
-				print(CommunicatorModuleSpec)
 				CommunicatorModule = importlib.util.module_from_spec(CommunicatorModuleSpec)
 				# exec module
 				CommunicatorModuleSpec.loader.exec_module(CommunicatorModule)
@@ -52,6 +57,17 @@ class Core:
 
 				# Call the start func
 				Self.CommunicatorClasses[ModuleName].Start(Self)
+				Self.CoreLogger.Log(f"Loaded Communicator module {ModuleName}")
+
+	def Stop(Self):
+		for CommunicatorClass in Self.CommunicatorClasses.values():
+			CommunicatorClass.Stop()
+
+		Self.Running = False
 
 if __name__ == "__main__":
-	Core()
+	MainCore = Core()
+	MainCore.Start()
+
+	while MainCore.Running:
+		time.sleep(0.5)
