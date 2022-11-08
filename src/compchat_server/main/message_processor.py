@@ -11,7 +11,7 @@
 	}
 }
 """
-import json
+import traceback
 
 from compchat_server.main import core as CompChatCore
 from compchat_shared.utility import projlogging
@@ -36,11 +36,15 @@ class MessageProcessor():
 		try:
 			# Handle system messages
 			if Message.Channel == 0:
-				if Message.Data.Action == "TestMessage":
-					Self.Logger.Log(f"TestMessage channel command sent: {Message.Data.Text}", 4)
+				if Message.Data.get("Action") == "TestMessage":
+					Self.Logger.Log(f"TestMessage channel command sent: {Message.Data.get('Text')}", 4)
 				else:
-					Self.Logger.Log(f"Unhandled system message for action {Message.Data.Action}", 2)
+					Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
 			else:
-				Self.Logger.Log("UNIMPLEMENTED HANDLING FOR NON SYSTEM MESSAGES")
-		except:
+				Self.Logger.Log("Handling for non-system messages is not implemented.", 3)
+				Self.Logger.Log(f"Message data: {Message.Data}")
+		except Exception as Excp:
 			Self.Logger.Log(f"Failed to handle message {Message.Data} for channel {Message.Channel}.", 3)
+			Self.Logger.Log(f"Exception: {traceback.format_exc()}")
+
+		

@@ -1,17 +1,16 @@
 import socket
-import threading
 
 # Declare Core type and import logging
 from compchat_server.main import core as CompChatCore
 from compchat_shared.utility import projlogging
-from compchat_shared.networking import distributor
+from compchat_shared.networking import distributor, socket_connection
 
 class CommunicatorConnection():
 	Logger = projlogging.Logger("socket_communicator_connection")
 
-	def __init__(Self, Core: CompChatCore):
+	def __init__(Self, Core: CompChatCore, Socket: socket.SocketType):
 		Self.Core = Core
-		print("Socket communicator got a new socket")
+		Self.ThisConnection = socket_connection.SocketConnection(Socket, Self.__ReceiveData)
 
 	def Check(Self):
 		pass
@@ -22,7 +21,9 @@ class CommunicatorConnection():
 	def Replicate(Self):
 		pass
 
-	def __ReceiveData(Self):
+	def __ReceiveData(Self, Data):
+		CommunicatorConnection.Logger.Log(f"Processing data in CommunicatorConnection, len {len(Data)}")
+		Self.Core.MessageProcessor.ProcessMessage(Data)
 		pass
 
 class CommunicatorClass:
@@ -40,5 +41,7 @@ class CommunicatorClass:
 		Self.SocketDistributor.Stop()
 
 	def HandleNewConnection(Self, Socket: socket.SocketType):
-		pass
-		# at this point, we are on a random port with the connection
+		CommunicatorClass.MainLogger.Log(f"Got a new connection from {Socket.getsockname()}")
+		NewConnection = CommunicatorConnection(Self.Core, Socket)
+		# WIP: Do something with the connection to log it with the rest of the code
+		

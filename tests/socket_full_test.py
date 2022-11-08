@@ -19,12 +19,13 @@
 # Shutdown C3 client backend
 import test_common
 
-import json
 import time
 
 import compchat_server.main.core as core
 
 import compchat_shared.networking.distributor as distributor
+import compchat_shared.networking.socket_connection as socket_connection
+import compchat_shared.structure.message as message
 
 # Start the server
 ServerCore = core.Core()
@@ -32,27 +33,27 @@ ServerCore.Start()
 
 # Get a socket for the new client connection
 ClientConnectionSocket = distributor.getSocket("localhost", "33826")
+OurConnection = socket_connection.SocketConnection(ClientConnectionSocket)
 
-TestData = {
-	"Channel": 0,
-	"Data": {
+TestData = message.Message(
+	0,
+	{
 		"Action": "TestMessage",
 		"Text": "This is an example of a packet a client would send to the server."
 	}
-}
+)
 
 time.sleep(2)
-print("Sending data.")
-ClientConnectionSocket.sendall(json.dumps(TestData).encode())
+print("[TEST] [socket_full_test]: Sending data.")
+OurConnection.Send(TestData.ToJSON())
 
-TestData2 = {
-	"Channel": 0,
-	"Data": {
+TestData2 = message.Message(
+	0,
+	{
 		"Action": "TestMessage",
 		"Text": "This is a second example, similar to above."
 	}
+)
 
-}
-
-print("Sending more data.")
-ClientConnectionSocket.sendall(json.dumps(TestData2).encode())
+print("[TEST] [socket_full_test]: Sending more data.")
+OurConnection.Send(TestData2.ToJSON())

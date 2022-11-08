@@ -21,19 +21,19 @@ class Core:
 
 		# PHASE 1 LOADING
 		# Load DB
-		Core.Database = database.Database()
+		Self.Database = database.Database()
 
 		# Initialize our ServerChannel class
-		Core.ServerChannel = server_channel.ServerChannel
+		Self.ServerChannel = server_channel.ServerChannel
 
 		# PHASE 2 LOADING
 		# Connection Manager, Message Processor
-		Core.ConnectionManager = connection_manager.ConnectionManager(Self)
-		Core.MessageProcessor = message_processor.MessageProcessor(Self)
+		Self.ConnectionManager = connection_manager.ConnectionManager(Self)
+		Self.MessageProcessor = message_processor.MessageProcessor(Self)
 
 		# PHASE 3 LOADING
 		# Client Manager
-		Core.ClientManager = client_manager.ClientManager(Self)
+		Self.ClientManager = client_manager.ClientManager(Self)
 
 		# PHASE 4 LOADING
 		# Communicators

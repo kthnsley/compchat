@@ -15,8 +15,6 @@ Logger = projlogging.Logger("socket_distributor")
 
 def defaultCallback(Socket: socket.SocketType):
 	Logger.Log("Default callback called. Did we not pass a Callback to DistributorServer?")
-	Socket.close()
-	pass
 
 # Takes a callback function and server address. Adds a .start and .stop can be called to start and stop the server.
 class DistributorServer:
