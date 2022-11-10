@@ -6,10 +6,10 @@ from compchat_shared.utility import projlogging
 from compchat_shared.networking import distributor, socket_connection
 
 # This class defines the actual connection rather than the "service"
-class CommunicatorConnection:
+class CommunicatorConnection():
 	Logger = projlogging.Logger("socket_communicator_connection")
 
-	def __init__(Self, Core: CompChatCore.Core, Socket: socket.SocketType):
+	def __init__(Self, Core: CompChatCore, Socket: socket.SocketType):
 		Self.Core = Core
 		Self.ThisConnection = socket_connection.SocketConnection(Socket, Self.__ReceiveData)
 
@@ -26,13 +26,13 @@ class CommunicatorConnection:
 	def __ReceiveData(Self, Data):
 		CommunicatorConnection.Logger.Log(f"Processing data in CommunicatorConnection, len {len(Data)}")
 		# Process message when we get it
-		Self.Core.MessageProcessor.ProcessMessage(Data)
+		Self.Core.MessageProcessor.ProcessMessage(Data, Self)
 
-class CommunicatorClass:
+class CommunicatorClass():
 	# Main class for the connection, 
 	MainLogger = projlogging.Logger("socket_communicator_main")
 
-	def Start(Self, Core: CompChatCore.Core):
+	def Start(Self, Core: CompChatCore):
 		Self.Core = Core
 
 		# Create our SocketDistributor

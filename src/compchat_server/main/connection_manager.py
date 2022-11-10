@@ -15,18 +15,19 @@ import traceback
 # This isn't very intuitive, but this only provides data. All actual methods should be sent through
 # the ConnectionManager. I would refactor this to make more sense, but it shouldn't be too 
 # hard to understand and should work fine.
-class __ServerClient():
-	Logger = projlogging.Logger("client_manager_server_client")
 
-	def __init__(Self, Core: CompChatCore.Core, ConnectionManager, ClientId: int):
+# Also uses way too many dicts when we should just have one dict with helper funcs, but 2lazy
+class ServerClient():
+	def __init__(Self, Core: CompChatCore, ConnectionManager, SourceId: int):
 		Self.Core = Core
 		Self.ConnectionManager = ConnectionManager
-		Self.ClientId = ClientId
-		Self.ClientChannels = {}
+		Self.SourceId = SourceId
+		Self.ClientChannels = [1234] #WIP: Pull from database
+		Self.Logger = projlogging.Logger(f"connection_manager_client_{SourceId}")
 		
 	def Replicate(Self, Message: message.Message):
 		Message = Message.ToJSON()
-		for UserConnection in ConnectionManager.GetConnectionsByClient(Self.ClientId):
+		for UserConnection in Self.ConnectionManager.GetClientConnectionsById(Self.SourceId):
 			UserConnection.Replicate(Message)
 
 
@@ -38,60 +39,82 @@ class ConnectionManager():
 	ConnectionTimeoutTime = 10 # how long a connection needs to be dead before we close it
 
 	# Add a connection to their table
-	def AddConnection(Self, Connection, ClientId: int):
-		Self.GetConnectionsByClient(ClientId).append(Connection)
+	def AddConnection(Self, Connection, SourceId: int):
+		Self.Logger.Log(f"Adding connection for SourceId {SourceId}")
+		Self.GetClientConnectionsById(SourceId).append(Connection)
+		print(Self.CurrentConnections)
 
-		if Self.ConnectedClients.get(ClientId) == None:
-			Self.ConnectedClients[ClientId] = __ServerClient(Self, Self.Core, ClientId)
+		if Self.ConnectedClients.get(SourceId) == None:
+			Self.ConnectedClients[SourceId] = ServerClient(Self.Core, Self, SourceId)
+
+		Self.ConnectionToClient[Connection] = Self.ConnectedClients[SourceId]
 
 	# Remove a connection from their table
-	def RemoveConnection(Self, Connection, ClientId: int):
-		ThisClientConnections = Self.GetConnectionsByClient(ClientId)
+	def RemoveConnection(Self, Connection, SourceId: int):
+		if SourceId == None:
+			SourceId = Self.GetClientByConnection(Connection).SourceId
+
+		ThisClientConnections = Self.GetClientConnectionsById(SourceId)
 		try:
 			ThisClientConnections.remove(Connection)
 		except Exception as Excp:
-			Self.Logger.Log(f"Failed to remove connection for Client {ClientId}", 3)
+			Self.Logger.Log(f"Failed to remove connection for Client {SourceId}", 3)
 			Self.Logger.Log(f"Exception: {traceback.format_exc()}")
 
 		if Self.ConnectionTimeouts.get(Connection):
 			del Self.ConnectionTimeouts[Connection]
 
-		ThisClient = Self.ConnectedClients.get(ClientId)
+		ThisClient = Self.ConnectedClients.get(SourceId)
 
 		if len(ThisClientConnections) == 0 and ThisClient:
 			del Self.ConnectedClients[ThisClient]
 
+		if Self.ConnectionToClient.get(Connection):
+			del Self.ConnectionToClient[Connection]
+
 		Connection.Destroy()
 
-	def GetClientConnectionsById(Self, ClientId: int) -> list:
-		ClientConnections = Self.CurrentConnections.get(str(ClientId), [])
-		Self.Logger.Log(f"Got Client connections for {ClientId}: {ClientConnections}")
-
-	def ReplicateMessageToClientById(Self, ClientId: int, Message: message.Message):
-		ThisClient = Self.ConnectedClients.get(ClientId)
-		if ThisClient:
-			ThisClient.Replicate(Message)
+	def GetClientConnectionsById(Self, SourceId: int) -> list:
+		ClientConnections = Self.CurrentConnections.get(SourceId)
+		if ClientConnections:
+			Self.Logger.Log(f"Got Client connections for {SourceId}: {ClientConnections}")
 		else:
-			Self.Logger.Log(f"Client {ClientId} is not connected, not replicating.")
+			Self.Logger.Log(f"No old client connections found for {SourceId}. Making new table.")
+			Self.CurrentConnections[SourceId] = []
+			return Self.CurrentConnections[SourceId]
+
+		return ClientConnections
+
+	def GetClientById(Self, SourceId: int):
+		ThisClient = Self.ConnectedClients.get(SourceId)
+		if ThisClient:
+			return ThisClient
+		else:
+			Self.Logger.Log(f"Client {SourceId} is not connected, not returning.")
+
+	def GetClientByConnection(Self, Connection):
+		if Self.ConnectionToClient.get(Connection):
+			return Self.ConnectionToClient[Connection]
 
 	def __ConnectionCleanup(Self):
 		while Self.Core.Running:
 			time.sleep(1)
-			for ClientId, ClientConnections in Self.CurrentConnections.items():
+			for SourceId, ClientConnections in Self.CurrentConnections.items():
 				for ClientConnection in ClientConnections:
 					if ClientConnection.Check():
 						Self.ConnectionTimeouts[ClientConnection] = 0
 					else:
 						CurrentTimeout = Self.ConnectionTimeouts.get(ClientConnection, 0)
 						if CurrentTimeout + 1 >= Self.ConnectionTimeoutTime:
-							Self.RemoveConnection(ClientConnection, ClientId)
+							Self.RemoveConnection(ClientConnection, SourceId)
 						else:
 							Self.ConnectionTimeouts[ClientConnection] = CurrentTimeout + 1
 
-	def __init__(Self, Core: CompChatCore.Core):
+	def __init__(Self, Core: CompChatCore):
 		Self.Core = Core
 		Self.CurrentConnections = {}
 		Self.ConnectionTimeouts = {} # hold connections
 		Self.ConnectedClients = {}
+		Self.ConnectionToClient = {}
 
 		threading.Thread(target=Self.__ConnectionCleanup).start()
