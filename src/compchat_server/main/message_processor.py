@@ -17,12 +17,15 @@ from compchat_server.main import core as CompChatCore
 from compchat_shared.utility import projlogging
 from compchat_shared.structure import message
 
+# Main class for Core to initialize from
 class MessageProcessor():
 	Logger = projlogging.Logger("message_processor")
 	
 	def __init__(Self, Core: CompChatCore):
+		# Init function, only need to provide variables.
 		Self.Core = Core
 
+	# Take a message string, process it, perform system actions, handle replication.
 	def ProcessMessage(Self, MessageString: str):
 		Success, Message = message.fromJSON(MessageString)
 

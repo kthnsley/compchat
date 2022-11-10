@@ -6,13 +6,19 @@
 from compchat_server.main import core as CompChatCore
 from compchat_shared.utility import projlogging
 
+# Main class. Doesn't actually have much to do, mainly just need a way to track user connections. Run keepalives,
+# provide a way for other parts to send messages to clients.
 class ConnectionManager():
 	Logger = projlogging.Logger("connection_manager")
 
 	def __init__(Self, Core: CompChatCore):
 		pass
 
-class __Connection():
-	def __init__(Self, Core: CompChatCore, ConnectionManager: ConnectionManager):
-		#Logger = projlogging.Logger("message_processor")
+# Wrapper around the normal client
+class __ServerClient():
+	from compchat_shared.utility import projlogging
+	Logger = projlogging.Logger("client_manager_server_client")
+
+	def __init__(Self, Core: CompChatCore, UserId: int):
+		Logger = projlogging.Logger(f"client_manager_server_client_{UserId}")
 		pass

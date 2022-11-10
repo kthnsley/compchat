@@ -21,6 +21,7 @@ class DistributorServer:
 	# We have to do this to prevent GC from closing our sockets.
 	ActiveSockets = []
 
+	# Init function, just set some variables
 	def __init__(Self, Host="0.0.0.0", Callback=defaultCallback):
 		Self.__Host = Host # where we listen to
 		Self.__Status = "STOPPED" # Valid statuses are "AVAILABLE", "STOPPED"
@@ -28,7 +29,9 @@ class DistributorServer:
 		Self.__Callback = Callback
 		Self.__HandlerThread: threading.Thread = None
 
+	# Start the Distributor Server
 	def Start(Self, Port=33825):
+		# Prevent running duplicate distributor servers
 		if Self.__Status == "AVAILABLE":
 			Logger.Log("Failing attempt to start already running Socket Distributor", 3)
 			return

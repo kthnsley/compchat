@@ -5,7 +5,7 @@ import threading
 import time
 
 # Import our own submodules
-from compchat_server.main import database, client_manager, connection_manager, message_processor, server_channel
+from compchat_server.main import database, connection_manager, message_processor, server_channel
 from compchat_shared.utility import projlogging
 import compchat_server.communicators
 
@@ -32,34 +32,34 @@ class Core:
 		Self.MessageProcessor = message_processor.MessageProcessor(Self)
 
 		# PHASE 3 LOADING
-		# Client Manager
-		Self.ClientManager = client_manager.ClientManager(Self)
-
-		# PHASE 4 LOADING
 		# Communicators
 		Self.CommunicatorClasses = {}
 		Self.CommunicatorConnectors = {}
+		# Get all files in the Communicators directory with .py
 		for ModulePath in (glob.glob(f"{compchat_server.communicators.__path__[0]}/*.py")):
+			# Get file name
 			ModuleName = ModulePath.split("/")[-1][:-3]
 
+			# Don't load the packaging file
 			if ModuleName != "__init__":
 				Self.CoreLogger.Log(f"Importing and initing communicator {ModuleName}")
 
-				# importlib magic
+				# importlib magic to load the module
 				CommunicatorModuleSpec = importlib.util.spec_from_file_location(ModuleName, ModulePath)
 				CommunicatorModule = importlib.util.module_from_spec(CommunicatorModuleSpec)
-				# exec module
+				# exec module, running the code inside
 				CommunicatorModuleSpec.loader.exec_module(CommunicatorModule)
 				
 				Self.CommunicatorClasses[ModuleName] = CommunicatorModule.CommunicatorClass()
 
 				Self.CommunicatorConnectors[ModuleName] = CommunicatorModule.CommunicatorConnection
 
-				# Call the start func
+				# Call the start func to start the communicator
 				Self.CommunicatorClasses[ModuleName].Start(Self)
 				Self.CoreLogger.Log(f"Loaded Communicator module {ModuleName}")
 
 	def Stop(Self):
+		# Right now, simply call all the communicator stop functions
 		for CommunicatorClass in Self.CommunicatorClasses.values():
 			CommunicatorClass.Stop()
 

@@ -21,13 +21,16 @@ except:
 
 InternalLogger = None
 
+# Used internally to convert a number to the string
 VerbosityStrings = ["NONE", "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
 
+# Logger class, init this to get a logger (projlogging.Logger())
 class Logger():
 	LogPath = f"{tempfile.gettempdir()}/comp3825-messager-logs/{str(int(time.time()))}.log"
 	FileVerbosity = 5
 	PrintVerbosity = 1
 
+	# Define source variable, and a custom log path if needed.
 	def __init__(Self, Source="UNKNOWN SOURCE", LogPath=LogPath):
 		Self.Source = Source
 		Self.LogPath = LogPath
@@ -36,7 +39,7 @@ class Logger():
 		else:
 			Self.Log(f"Made logger for {Source} to {LogPath}")
 
-	# Main function
+	# Main function, pass a string and optionally a verbosity so that its logged
 	def Log(Self, Message: string, Verbosity=5):
 		if Verbosity <= 0:
 			return

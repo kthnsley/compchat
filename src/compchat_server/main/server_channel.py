@@ -1,4 +1,4 @@
-# WIP
+# WIP. Wrapper for Channel that provides our server functions (add a user, etc.)
 # Declare Core type
 from compchat_server.main import core as CompChatCore
 from compchat_shared.utility import projlogging
