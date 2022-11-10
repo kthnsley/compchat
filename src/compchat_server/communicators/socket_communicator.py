@@ -9,18 +9,19 @@ from compchat_shared.networking import distributor, socket_connection
 class CommunicatorConnection:
 	Logger = projlogging.Logger("socket_communicator_connection")
 
-	def __init__(Self, Core: CompChatCore, Socket: socket.SocketType):
+	def __init__(Self, Core: CompChatCore.Core, Socket: socket.SocketType):
 		Self.Core = Core
 		Self.ThisConnection = socket_connection.SocketConnection(Socket, Self.__ReceiveData)
 
 	def Check(Self) -> bool:
-		pass
+		# placeholder
+		return True
 	
 	def Destroy(Self):
 		pass
 
-	def Replicate(Self):
-		pass
+	def Replicate(Self, Message: str):
+		Self.ThisConnection.Send(Message)
 
 	def __ReceiveData(Self, Data):
 		CommunicatorConnection.Logger.Log(f"Processing data in CommunicatorConnection, len {len(Data)}")
@@ -31,7 +32,7 @@ class CommunicatorClass:
 	# Main class for the connection, 
 	MainLogger = projlogging.Logger("socket_communicator_main")
 
-	def Start(Self, Core: CompChatCore):
+	def Start(Self, Core: CompChatCore.Core):
 		Self.Core = Core
 
 		# Create our SocketDistributor

@@ -6,7 +6,7 @@ from compchat_shared.utility import projlogging
 class ServerChannel():
 	Logger = projlogging.Logger("server_channel")
 
-	def __init__(Core: CompChatCore):
+	def __init__(Core: CompChatCore.Core):
 		pass
 
 def getChannel(ChannelId: int):

@@ -5,7 +5,7 @@ from compchat_shared.utility import projlogging
 class CommunicatorConnection():
 	Logger = projlogging.Logger("telnet_communicator_connection")
 
-	def __init__(Self, Core: CompChatCore):
+	def __init__(Self, Core: CompChatCore.Core):
 		pass
 
 	def Check(Self) -> bool:
@@ -17,7 +17,7 @@ class CommunicatorConnection():
 		# Close the connection gracefully
 		pass
 
-	def Replicate(self):
+	def Replicate(self, Message: str):
 		# Send a message to the client
 		pass
 
@@ -25,7 +25,7 @@ class CommunicatorClass:
 	MainLogger = projlogging.Logger("telnet_communicator_main")
 
 	# Basically start up our "server" for the connection
-	def Start(Self, Core: CompChatCore):
+	def Start(Self, Core: CompChatCore.Core):
 		Self.Core = Core
 
 	# Define how we stop our "server," basically just cleanup

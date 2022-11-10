@@ -4,6 +4,7 @@
 
 """
 {
+	ClientId: 1234
 	Channel: 0
 	Data: {
 		Action: string, ("TestMessage")
@@ -21,7 +22,7 @@ from compchat_shared.structure import message
 class MessageProcessor():
 	Logger = projlogging.Logger("message_processor")
 	
-	def __init__(Self, Core: CompChatCore):
+	def __init__(Self, Core: CompChatCore.Core):
 		# Init function, only need to provide variables.
 		Self.Core = Core
 
@@ -35,6 +36,14 @@ class MessageProcessor():
 			return
 
 		# We now know this message was good externally
+
+		# Make sure the SourceId is valid
+		# 0 is a temporary testing SourceId, shouldn't be a real user.
+		if Message.SourceId != 0:
+			# add code to make sure this is an actual client that's connected here
+
+			# also make sure that the client is properly connected
+			pass
 
 		try:
 			# Handle system messages

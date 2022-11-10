@@ -1,7 +1,6 @@
 # Using dependency injection to pass functions that are needed from core to submodules
 import importlib.util
 import glob
-import threading
 import time
 
 # Import our own submodules

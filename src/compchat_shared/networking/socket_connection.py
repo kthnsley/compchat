@@ -26,7 +26,7 @@ class SocketConnection():
 		Self.__IncomingHandlerThread.start()
 
 	# Function to send data
-	def Send(Self, Data: dict) -> bool:
+	def Send(Self, Data: str):
 		Logger.Log(f"Sending data: {Data}")
 		Self.__Socket.sendall(Data.encode())
 		pass
