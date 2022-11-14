@@ -22,7 +22,7 @@ class ServerClient():
 		Self.Core = Core
 		Self.ConnectionManager = ConnectionManager
 		Self.SourceId = SourceId
-		Self.ClientChannels = [1234] #WIP: Pull from database
+		Self.ClientChannels = [] #WIP: Pull from database
 		Self.Logger = projlogging.Logger(f"connection_manager_client_{SourceId}")
 		
 	def Replicate(Self, Message: message.Message):
@@ -42,7 +42,7 @@ class ConnectionManager():
 	def AddConnection(Self, Connection, SourceId: int):
 		Self.Logger.Log(f"Adding connection for SourceId {SourceId}")
 		Self.GetClientConnectionsById(SourceId).append(Connection)
-		print(Self.CurrentConnections)
+		#print(Self.CurrentConnections)
 
 		if Self.ConnectedClients.get(SourceId) == None:
 			Self.ConnectedClients[SourceId] = ServerClient(Self.Core, Self, SourceId)
@@ -77,7 +77,7 @@ class ConnectionManager():
 	def GetClientConnectionsById(Self, SourceId: int) -> list:
 		ClientConnections = Self.CurrentConnections.get(SourceId)
 		if ClientConnections:
-			Self.Logger.Log(f"Got Client connections for {SourceId}: {ClientConnections}")
+			Self.Logger.Log(f"Got Client connections for {SourceId}: {len(ClientConnections)}")
 		else:
 			Self.Logger.Log(f"No old client connections found for {SourceId}. Making new table.")
 			Self.CurrentConnections[SourceId] = []

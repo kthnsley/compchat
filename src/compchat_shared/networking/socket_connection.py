@@ -37,8 +37,8 @@ class SocketConnection():
 		# Chunks = []
 		while True:
 			try:
-				# Recv 2048 bytes of data maximum, may want to increase this
-				Data = Socket.recv(2048)
+				# Recv 65536 bytes of data maximum. This is wasteful and ideally we'd want a buffer handler
+				Data = Socket.recv(65536)
 				if Data:
 					#Chunks.append(Data)
 					# Log incoming data

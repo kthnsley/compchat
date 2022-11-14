@@ -23,7 +23,7 @@ class Core:
 		Self.Database = database.Database()
 
 		# Initialize our ServerChannel class
-		Self.ServerChannel = server_channel.ServerChannel
+		Self.ServerChannel = server_channel.ServerChannel(Self)
 
 		# PHASE 2 LOADING
 		# Connection Manager, Message Processor

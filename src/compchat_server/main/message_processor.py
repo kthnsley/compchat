@@ -28,6 +28,12 @@ class MessageProcessor():
 		# Init function, only need to provide variables.
 		Self.Core = Core
 
+	def SendMessage(Self, Destinations, Message: message.Message):
+		pass
+
+	def SendMessageById(Self, DestinationIds: list[int], Message: message.Message):
+		pass
+
 	# Take a message string, process it, perform system actions, handle replication.
 	def ProcessMessage(Self, MessageString: str, CommunicatorConnection):
 		Success, Message = message.fromJSON(MessageString)
@@ -44,32 +50,64 @@ class MessageProcessor():
 			if Message.Channel == 0:
 				if Message.Data.get("Action") == "TestMessage":
 					Self.Logger.Log(f"TestMessage channel command sent: {Message.Data.get('Text')}", 4)
-				if Message.Data.get("Action") == "RegisterClient":
-					ThisSourceId = Message.SourceId
+					return
 
+				if Message.Data.get("Action") == "RegisterClient":
 					# Register this client
-					Self.Logger.Log(f"Registering client for id {ThisSourceId}")
-					Self.Core.ConnectionManager.AddConnection(CommunicatorConnection, ThisSourceId)
+					Self.Logger.Log(f"Registering client for id {Message.SourceId}")
+					Self.Core.ConnectionManager.AddConnection(CommunicatorConnection, Message.SourceId)
 					
+					ThisClientObject = Self.Core.ConnectionManager.GetClientById(Message.SourceId)
+					# Construct the list of dicts
+					ListOfChannels = {}
+					for Channel in ThisClientObject.ClientChannels:
+						ListOfChannels[Channel.ChannelId] = Channel.ToDict()
+
 					# Send this client the channels they are in
-					ThisClientObject = Self.Core.ConnectionManager.GetClientById(ThisSourceId)
 					ThisClientObject.Replicate(message.Message(
 						0,
 						0,
 						{
 							"Action": "ReplicateChannelList",
-							"Channels": ThisClientObject.ClientChannels
+							"Channels": ListOfChannels
 						}
 					))
 
 					Self.Logger.Log(f"Registering client finished. Client Connections:")
-					Self.Logger.Log(f"{Self.Core.ConnectionManager.GetClientConnectionsById(ThisSourceId)}")
+					Self.Logger.Log(f"{len(Self.Core.ConnectionManager.GetClientConnectionsById(Message.SourceId))}")
+					return
 
-				else:
-					Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
+				# If we are at this point, this should be a real client.
+				ThisClientObject = None
+				try:
+					ThisClientObject = Self.Core.ConnectionManager.GetClientById(Message.SourceId)
+				except:
+					Self.Logger.Log(f"Got SourceId {ThisClientObject}, but client not found.")
+
+				if Message.Data.get("Action") == "GetChannel":
+					Message.SourceId = Message.SourceId
+					RequestedChannelId = Message.Data.get("ChannelId")
+					# log
+					Self.Logger.Log(f"Client {Message.SourceId} is requesting to join channel {RequestedChannelId}.")
+
+					RequestedChannel = Self.Core.ServerChannel.GetChannel(RequestedChannelId, True)
+					RequestedChannel.AddClient(ThisClientObject)
+
+					ThisClientObject.Replicate(message.Message(
+						0,
+						0,
+						{
+							"Action": "ReplicateChannel",
+							"Data": RequestedChannel.ToDict()
+						}
+					))
+
+					return
+				
+				Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
 			else:
-				Self.Logger.Log("Handling for non-system messages is not implemented.", 3)
-				Self.Logger.Log(f"Message data: {Message.Data}")
+				# Get the channel we are sending the message to
+				TargetChannel = Self.Core.ServerChannel
 		except Exception as Excp:
 			Self.Logger.Log(f"Failed to handle message {Message.Data} for channel {Message.Channel}.", 3)
 			Self.Logger.Log(f"Exception: {traceback.format_exc()}")
