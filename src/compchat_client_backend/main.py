@@ -28,7 +28,7 @@ class ClientBackend():
 		Self.SendMessage(0, {"Action": "RegisterClient"})
 
 	def CloseConnection(Self):
-		pass
+		Self.Connection.Close()
 
 	# wrapper around the normal message sender
 	def SendMessage(Self, TargetChannel: int, Data: dict):
@@ -37,6 +37,40 @@ class ClientBackend():
 
 	# this is the client "ProcessMessage"
 	def HandleIncoming(Self, Data: str):
-		ClientBackendLogger.Log(f"Client {Self.Id} - Got message {Data}")
+		#ClientBackendLogger.Log(f"Client {Self.Id} - Got message {Data}")
 
 		_, ThisMessage = message.fromJSON(Data)
+
+		# tmp but functional, only thing server -> client is the messaging
+		if ThisMessage.Channel == 0:
+			TargetAction = ThisMessage.Data.get("Action")
+			if TargetAction == "ReplicateChannelList":
+				# unpack channels
+				ClientBackendLogger.Log(f"Client {Self.Id} - Unpacking channel list")
+				for Channel in ThisMessage.Data.get("Channels"):
+					NewChannel = channel.Channel(Channel.ChannelId)
+					NewChannel.Members = Channel.Members
+					NewChannel.Messages = Channel.Messages
+					Self.OurChannels[Channel.ChannelId] = NewChannel
+			elif TargetAction == "ReplicateChannel":
+				# jank, but we don't update messages with ReplicateChannel if the channel already
+				# exists
+				NewData = ThisMessage.Data.get("Channel")
+				CurrentChannel = Self.OurChannels.get(NewData.get("ChannelId"))
+				if CurrentChannel != None:
+					ClientBackendLogger.Log(f"Client {Self.Id} - Updating channel member list")
+					CurrentChannel.Members = NewData.get("Members")
+				else:
+					ClientBackendLogger.Log(f"Client {Self.Id} - Responding to get of new channel. New channel ID is {NewData.get('ChannelId')}")
+					NewChannel = channel.Channel(NewData.get("ChannelId"))
+					NewChannel.Members = NewData.get("Members")
+					NewChannel.Messages = NewData.get("Messages")
+					Self.OurChannels[NewData.get("ChannelId")] = NewChannel
+
+		else:
+			TargetChannel = Self.OurChannels[ThisMessage.Channel]
+			# In the future, add some event based handler here.
+			TargetChannel.Messages.append({
+				"SourceId": ThisMessage.SourceId,
+				"Text": ThisMessage.Data.get("Text")
+			})

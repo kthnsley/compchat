@@ -92,12 +92,17 @@ class MessageProcessor():
 						0,
 						{
 							"Action": "ReplicateChannel",
-							"Data": RequestedChannel.ToDict()
+							"Channel": RequestedChannel.ToDict()
 						}
 					))
 
+					# Now update all other clients
+
 					return
 				
+				if Message.Data.get("Action") == "ClientDisconnect":
+					pass
+
 				Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
 			else:
 				# Get the channel we are sending the message to
@@ -105,6 +110,11 @@ class MessageProcessor():
 				if not TargetChannel:
 					Self.Logger.Log(f"Bad channel sent with message {Message.Channel}")
 					return
+
+				TargetChannel.Messages.append({
+					"SourceId": Message.SourceId,
+					"Text": Message.Data.get("Text")
+				})
 
 				# Replicate the message to everyone including the sending client
 				for Client in TargetChannel.Clients:

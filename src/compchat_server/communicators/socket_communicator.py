@@ -18,15 +18,20 @@ class CommunicatorConnection():
 		return True
 	
 	def Destroy(Self):
-		pass
+		Self.ThisConnection.Close()
 
 	def Replicate(Self, Message: str):
 		Self.ThisConnection.Send(Message)
 
 	def __ReceiveData(Self, Data):
 		CommunicatorConnection.Logger.Log(f"Processing data in CommunicatorConnection, len {len(Data)}")
-		# Process message when we get it
-		Self.Core.MessageProcessor.ProcessMessage(Data, Self)
+		# make sure this isn't a stop message
+		if str(Data) == "stop":
+			CommunicatorConnection.Logger.Log("Stopping connection.")
+			Self.Destroy()
+		else:
+			# Process message when we get it
+			Self.Core.MessageProcessor.ProcessMessage(Data, Self)
 
 class CommunicatorClass():
 	# Main class for the connection, 

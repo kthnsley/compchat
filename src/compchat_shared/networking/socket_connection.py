@@ -4,6 +4,8 @@ import threading
 import socket
 import traceback
 
+import time
+
 import compchat_shared.utility.projlogging as projlogging
 Logger = projlogging.Logger("socket_connection")
 
@@ -35,7 +37,7 @@ class SocketConnection():
 		# TODO: Handle large data. Might just be doable with recv
 		# TODO: Add check for when data was last recv, use check.
 		# Chunks = []
-		while True:
+		while Self.__Alive:
 			try:
 				# Recv 65536 bytes of data maximum. This is wasteful and ideally we'd want a buffer handler
 				Data = Socket.recv(65536)
@@ -44,6 +46,9 @@ class SocketConnection():
 					# Log incoming data
 					Logger.Log(f"Incoming data: {Data}")
 					try:
+						if not Self.__Alive:
+							print("stopping early")
+							return
 						# Convert data from bytes to string
 						DecodedData = Data.decode()
 						# Call the incoming handler to process the data
@@ -62,6 +67,8 @@ class SocketConnection():
 		pass
 	
 	# Gracefully close the communication
-	def Close():
-		Logger.Log("CALL RECV FOR STUB Close", 3)
-		pass
+	def Close(Self):
+		Self.__Alive = False
+		time.sleep(0.5)
+		Self.__Socket.sendall(b"stop")
+		Self.__Socket.close()

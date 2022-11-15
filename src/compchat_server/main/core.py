@@ -64,9 +64,12 @@ class Core:
 
 		Self.Running = False
 
-if __name__ == "__main__":
+def run():
 	MainCore = Core()
 	MainCore.Start()
 
 	while MainCore.Running:
 		time.sleep(0.5)
+
+if __name__ == "__main__":
+	run()

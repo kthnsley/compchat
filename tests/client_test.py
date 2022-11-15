@@ -25,7 +25,7 @@ ClientOne.SendMessage(0, {"Action": "GetChannel", "ChannelId": 100})
 time.sleep(1)
 print(">>> CLIENT TWO GETTING CHANNEL")
 ClientTwo.SendMessage(0, {"Action": "GetChannel", "ChannelId": 100})
-
+time.sleep(1)
 print(">>> CLIENT ONE GETTING CHANNEL")
 ClientOne.SendMessage(0, {"Action": "GetChannel", "ChannelId": 200})
 time.sleep(1)
@@ -34,7 +34,9 @@ ClientTwo.SendMessage(0, {"Action": "GetChannel", "ChannelId": 200})
 
 # Generate 10 more clients because I want to see if I can
 for i in range(2):
+	time.sleep(0.1)
 	ThisClient = client_backend.ClientBackend(3 + i, ["localhost", "33826"])
+	time.sleep(0.1)
 	ThisClient.SendMessage(0, {"Action": "GetChannel", "ChannelId": 100})
 
 time.sleep(3)
