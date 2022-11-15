@@ -10,13 +10,27 @@ class ServerChannelObject(channel.Channel):
 
 		Self.Core = Core
 		Self.Clients = []
+		Self.Logger = projlogging.Logger(f"server_channel_{ChannelId}")
 
 	def AddClient(Self, Client):
 		if not (Client in Self.Clients):
+			Self.Logger.Log("Client does not exist in channel. Adding to table.")
 			Self.Clients.append(Client)
 
-		if not(Client.SourceId in Self.Members):
+		if not (Client.SourceId in Self.Members):
+			Self.Logger.Log("Member does not exist in channel. Adding to member table.")
 			Self.Members.append(Client.SourceId)
+
+		if len(Self.Clients) != len(Self.Members):
+			Self.Logger.Log("Number of clients and members is not equal. Something is wrong.")
+
+	# Only removes the Client object, should be used when cleaning up.
+	def RemoveClient(Self, Client):
+		try:
+			Self.Clients.remove(Client)
+		except Exception as Excp:
+			Self.Logger.Log("Failed to remove a client from RemoveClient.", 3)
+			Self.Logger.Log(f"Exception:\n {Excp}")
 
 	def ToDict(Self):
 		return {

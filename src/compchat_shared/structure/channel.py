@@ -1,5 +1,3 @@
-import json
-
 # Class to be extended for the formatting of information
 class Channel():
 	def __init__(Self, ChannelId: int):

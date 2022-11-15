@@ -54,7 +54,9 @@ class ConnectionManager():
 		if SourceId == None:
 			SourceId = Self.GetClientByConnection(Connection).SourceId
 
+		ThisClient = Self.GetClientById(SourceId)
 		ThisClientConnections = Self.GetClientConnectionsById(SourceId)
+
 		try:
 			ThisClientConnections.remove(Connection)
 		except Exception as Excp:
@@ -62,15 +64,18 @@ class ConnectionManager():
 			Self.Logger.Log(f"Exception: {traceback.format_exc()}")
 
 		if Self.ConnectionTimeouts.get(Connection):
-			del Self.ConnectionTimeouts[Connection]
+			Self.ConnectionTimeouts.pop(Connection)
 
-		ThisClient = Self.ConnectedClients.get(SourceId)
+		if len(ThisClientConnections) == 0 and Self.ConnectedClients.get(SourceId):
+			# remove client from all of their channel tables
+			del Self.ConnectedClients[SourceId]
 
-		if len(ThisClientConnections) == 0 and ThisClient:
-			del Self.ConnectedClients[ThisClient]
+		if ThisClient:
+			Self.ConnectionToClient.pop(Connection)
+			# also cleanup table
+			for Channel in ThisClient.ClientChannels:
+				Channel.RemoveClient(ThisClient)
 
-		if Self.ConnectionToClient.get(Connection):
-			del Self.ConnectionToClient[Connection]
 
 		Connection.Destroy()
 

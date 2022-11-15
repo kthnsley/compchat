@@ -28,6 +28,8 @@ class ClientBackend():
 		Self.SendMessage(0, {"Action": "RegisterClient"})
 
 	def CloseConnection(Self):
+		Self.SendMessage(0, {"Action": "ClientDisconnect"})
+		
 		Self.Connection.Close()
 
 	# wrapper around the normal message sender

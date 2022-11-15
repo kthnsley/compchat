@@ -3,14 +3,15 @@ import argparse
 import random
 
 import compchat_client_backend.main as client_backend
+import compchat_shared.utility.projlogging as projlogging
 
 # info that we need: OurClientId, TargetIp, TargetPort
 def getParser():
 	Parser = argparse.ArgumentParser()
-	Parser.add_argument("--id", help="The client ID that we will use for our session.", default=random.randint(1, 999999999))
+	Parser.add_argument("--id", help="The client ID that we will use for our session.", default=random.randint(1, 999999999), type=int)
 	Parser.add_argument("--ip", help="The target-ip that we will connect to.", default="localhost")
 	Parser.add_argument("--port", help="The port that we will connect to.", default="33826")
-	Parser.add_argument("--verbosity", help="Verbosity level of the code", default="2")
+	Parser.add_argument("--verbosity", help="Verbosity level of the code", default="2", type=int)
 	return Parser
 
 def help():
@@ -24,6 +25,9 @@ exit - Cleanly exit and disconnect from the server""")
 
 def main():
 	Arguments = getParser().parse_args()
+	# Set print verbosity
+	projlogging.Logger.PrintVerbosity = int(Arguments.verbosity)
+
 	Session = client_backend.ClientBackend(int(Arguments.id), (Arguments.ip, Arguments.port))
 	print("Welcome! Type help to get a list of commands!")
 	while True:

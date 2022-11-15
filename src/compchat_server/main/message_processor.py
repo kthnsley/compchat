@@ -79,15 +79,19 @@ class MessageProcessor():
 					Self.Logger.Log(f"Got SourceId {ThisClientObject}, but client not found.")
 
 				if Message.Data.get("Action") == "GetChannel":
-					Message.SourceId = Message.SourceId
 					RequestedChannelId = Message.Data.get("ChannelId")
 					# log
 					Self.Logger.Log(f"Client {Message.SourceId} is requesting to join channel {RequestedChannelId}.")
 
 					RequestedChannel = Self.Core.ServerChannel.GetChannel(RequestedChannelId, True)
 					RequestedChannel.AddClient(ThisClientObject)
+					
+					if not (RequestedChannel in ThisClientObject.ClientChannels):
+						ThisClientObject.ClientChannels.append(RequestedChannel)
 
-					ThisClientObject.Replicate(message.Message(
+					# Now update all other clients
+					for Client in RequestedChannel.Clients:
+						Client.Replicate(message.Message(
 						0,
 						0,
 						{
@@ -96,14 +100,12 @@ class MessageProcessor():
 						}
 					))
 
-					# Now update all other clients
-
 					return
-				
-				if Message.Data.get("Action") == "ClientDisconnect":
-					pass
-
-				Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
+				elif Message.Data.get("Action") == "ClientDisconnect":
+					Self.Core.ConnectionManager.RemoveConnection(CommunicatorConnection, Message.SourceId)
+					
+				else:
+					Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
 			else:
 				# Get the channel we are sending the message to
 				TargetChannel = Self.Core.ServerChannel.GetChannel(Message.Channel)

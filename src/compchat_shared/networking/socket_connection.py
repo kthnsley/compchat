@@ -46,8 +46,9 @@ class SocketConnection():
 					# Log incoming data
 					Logger.Log(f"Incoming data: {Data}")
 					try:
-						if not Self.__Alive:
-							print("stopping early")
+						# handle our internal stop packet we use to get past this loop
+						if not Self.__Alive and str(Data) == "stop":
+							Logger.Log(f"No longer alive. Stopping recv of data.")
 							return
 						# Convert data from bytes to string
 						DecodedData = Data.decode()
