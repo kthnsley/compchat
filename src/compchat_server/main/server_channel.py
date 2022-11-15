@@ -33,11 +33,14 @@ class ServerChannel():
 		Self.CurrentChannels = {}
 		Self.Core = Core
 
-	def GetChannel(Self, ChannelId: int, Create = False):
+	def GetChannel(Self, ChannelId: int, Create=False):
 		CurrentChannel = Self.CurrentChannels.get(ChannelId)
 		if CurrentChannel == None:
-			Self.Logger.Log(f"Could not find channel {ChannelId}, making it now.")
-			CurrentChannel = ServerChannelObject(Self.Core, ChannelId)
-			Self.CurrentChannels[ChannelId] = CurrentChannel
+			if Create:
+				Self.Logger.Log(f"Could not find channel {ChannelId}, making it now.")
+				CurrentChannel = ServerChannelObject(Self.Core, ChannelId)
+				Self.CurrentChannels[ChannelId] = CurrentChannel
+			else:
+				Self.Logger.Log(f"Could not find channel {ChannelId}.")
 
 		return CurrentChannel

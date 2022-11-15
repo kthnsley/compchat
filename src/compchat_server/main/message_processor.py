@@ -28,12 +28,6 @@ class MessageProcessor():
 		# Init function, only need to provide variables.
 		Self.Core = Core
 
-	def SendMessage(Self, Destinations, Message: message.Message):
-		pass
-
-	def SendMessageById(Self, DestinationIds: list[int], Message: message.Message):
-		pass
-
 	# Take a message string, process it, perform system actions, handle replication.
 	def ProcessMessage(Self, MessageString: str, CommunicatorConnection):
 		Success, Message = message.fromJSON(MessageString)
@@ -107,7 +101,15 @@ class MessageProcessor():
 				Self.Logger.Log(f"Unhandled system message for action {Message.Data.get('Action')}", 2)
 			else:
 				# Get the channel we are sending the message to
-				TargetChannel = Self.Core.ServerChannel
+				TargetChannel = Self.Core.ServerChannel.GetChannel(Message.Channel)
+				if not TargetChannel:
+					Self.Logger.Log(f"Bad channel sent with message {Message.Channel}")
+					return
+
+				# Replicate the message to everyone including the sending client
+				for Client in TargetChannel.Clients:
+					Client.Replicate(Message)
+
 		except Exception as Excp:
 			Self.Logger.Log(f"Failed to handle message {Message.Data} for channel {Message.Channel}.", 3)
 			Self.Logger.Log(f"Exception: {traceback.format_exc()}")

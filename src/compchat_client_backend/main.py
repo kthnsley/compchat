@@ -37,6 +37,6 @@ class ClientBackend():
 
 	# this is the client "ProcessMessage"
 	def HandleIncoming(Self, Data: str):
-		ClientBackendLogger.Log(f"Got message {Data}")
+		ClientBackendLogger.Log(f"Client {Self.Id} - Got message {Data}")
 
 		_, ThisMessage = message.fromJSON(Data)
