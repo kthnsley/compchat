@@ -11,6 +11,9 @@ import compchat_shared.utility.projlogging as projlogging
 import threading
 import time
 
+import os
+import ssl
+
 Logger = projlogging.Logger("socket_distributor")
 
 def defaultCallback(Socket: socket.SocketType):
@@ -30,7 +33,7 @@ class DistributorServer:
 		Self.__HandlerThread: threading.Thread = None
 
 	# Start the Distributor Server
-	def Start(Self, Port=33825):
+	def Start(Self, Port=33825, SSLContext=None):
 		# Prevent running duplicate distributor servers
 		if Self.__Status == "AVAILABLE":
 			Logger.Log("Failing attempt to start already running Socket Distributor", 3)
@@ -43,6 +46,7 @@ class DistributorServer:
 		Self.__Port = Port
 		Self.__HandlerThread = threading.Thread(target=Self.__HandleIncomingConnections)
 		Self.__HandlerThread.start()
+		Self.SSLContext = SSLContext
 
 	def Stop(Self):
 		if Self.__Status == "STOPPED":
@@ -69,21 +73,15 @@ class DistributorServer:
 
 		# Make our real server
 		NewSocket = socket.create_server((Self.__Host, AvailablePort), backlog=9)
-		
+
 		Socket.sendall(str(AvailablePort).encode())
 	
 		Logger.Log(f"Sent port {AvailablePort} to client.")
-
-		# Wait for client connection
-		# POSSIBLE TODO: This is prone to DDoS by just spamming and never actually connecting, probably.
 		NewSocket.listen(9)
 		NewSocket, _ = NewSocket.accept()
-		# POSSIBLE TODO: Make sure addresses line up, doesn't matter as much as above though
 
 		threading.Thread(target=Self.__Callback, args=[NewSocket]).start()
-
 		Self.ActiveSockets.append(NewSocket)
-
 		Socket.close()
 
 	def __HandleIncomingConnections(Self):
@@ -103,16 +101,23 @@ class DistributorServer:
 def getSocket(Host="127.0.0.1", Port=33825) -> socket.SocketType:
 	GetSocket = socket.create_connection((Host, Port))
 	while True:
-		Data = GetSocket.recv(16)
+		Data = GetSocket.recv(65536)
+		Logger.Log(f"Got data from Distributor getSocket: {Data}")
 		if Data:
 			try:
 				Data = int(Data)
 				break
 			except:
-				pass
+				Logger.Log(f"Bad data sent to Distributor: {Data}")
 
 	# We have our port
 	Logger.Log(f"Attempting connection from getSocket call to {Host, Data}")
-	NewSocket = socket.create_connection((Host, Data), timeout=10)
+	NewSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	if os.environ.get("COMPCHAT_SSL_ENABLED"):
+		Logger.Log(f"Wrapping socket as TLS. {Host, Data}")
+		NewSocket = ssl.wrap_socket(NewSocket, ssl_version=ssl.PROTOCOL_TLSv1_2)
+
+	NewSocket.settimeout(10)
+	NewSocket.connect((Host, Data))
 	# Return new socket
 	return NewSocket

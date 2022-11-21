@@ -6,6 +6,8 @@ import traceback
 
 import time
 
+import sys
+
 import compchat_shared.utility.projlogging as projlogging
 Logger = projlogging.Logger("socket_connection")
 
